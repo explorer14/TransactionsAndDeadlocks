@@ -50,10 +50,14 @@ namespace TransactionsAndDeadlocks
             {
                 await connection.OpenAsync();
 
-                if (await Exists(product, connection))
-                    await Update(product, connection);
-                else
-                    await Insert(product, connection);
+                // This code deadlocks
+                // if (await Exists(product, connection))
+                //     await Update(product, connection);
+                // else
+                //     await Insert(product, connection);
+
+                // This code doesn't
+                await Update(product, connection);
             }
         }
 
@@ -71,7 +75,7 @@ namespace TransactionsAndDeadlocks
 
         private async Task Update(Product product, MySqlConnection mySqlConnection)
         {
-            var sql = "update TrxDb.Products set stock = @stock where Id = @id";
+            var sql = "update TrxDb.Products set stock = @stock where Id = @id and Version = 1";
             var cmd = mySqlConnection.CreateCommand();
             cmd.CommandText = sql;
             cmd.Parameters.AddWithValue("@id", product.Id);

@@ -1,0 +1,13 @@
+version: '3'
+services:
+  stock-projection-store:
+    image: mysql:latest
+    container_name: product-store
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass123
+      MYSQL_USER: root
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
