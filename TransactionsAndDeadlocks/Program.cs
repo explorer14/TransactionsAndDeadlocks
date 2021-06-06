@@ -15,7 +15,7 @@ namespace TransactionsAndDeadlocks
             var repo = new Repository();
             var id = 1000;
 
-            Parallel.For(0, 100,
+            Parallel.For(0, 500,
                 async index =>
                 {
                     var product = new Product
@@ -24,7 +24,10 @@ namespace TransactionsAndDeadlocks
                         Stock = index+1
                     };
                     
-                    using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                    using (var scope = new TransactionScope(
+                        TransactionScopeOption.Required, 
+                        new TransactionOptions{IsolationLevel = IsolationLevel.RepeatableRead},
+                        TransactionScopeAsyncFlowOption.Enabled))
                     {
                         await repo.Save(product);
                         scope.Complete();
@@ -51,23 +54,24 @@ namespace TransactionsAndDeadlocks
                 await connection.OpenAsync();
 
                 // This code deadlocks
-                // if (await Exists(product, connection))
-                //     await Update(product, connection);
-                // else
-                //     await Insert(product, connection);
+                if (await Exists(product, connection))
+                    await Update(product, connection);
+                else
+                    await Insert(product, connection);
 
                 // This code doesn't
-                await Update(product, connection);
+                //await Update(product, connection);
             }
         }
 
         private async Task Insert(Product product, MySqlConnection mySqlConnection)
         {
-            var sql = "insert into TrxDb.Products values(@id, @stock)";
+            var sql = "insert into TrxDb.Products values(@id, @stock,@version)";
             var cmd = mySqlConnection.CreateCommand();
             cmd.CommandText = sql;
             cmd.Parameters.AddWithValue("@id", product.Id);
             cmd.Parameters.AddWithValue("@stock", product.Stock);
+            cmd.Parameters.AddWithValue("@version", 1);
 
             var noOfRows = (long) await cmd.ExecuteNonQueryAsync();
             Console.WriteLine($"Inserted {noOfRows} row(s)");
