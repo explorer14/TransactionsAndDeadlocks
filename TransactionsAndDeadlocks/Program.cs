@@ -3,8 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Transactions;
 using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.Relational;
-using Org.BouncyCastle.Crypto.Tls;
 
 namespace TransactionsAndDeadlocks
 {
