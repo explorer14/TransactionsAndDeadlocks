@@ -22,9 +22,7 @@ namespace TransactionsAndDeadlocks
                         Stock = index+1
                     };
                     
-                    using (var scope = new TransactionScope(
-                        TransactionScopeOption.Required, 
-                        new TransactionOptions{IsolationLevel = IsolationLevel.RepeatableRead},
+                    using (var scope = new TransactionScope(                        
                         TransactionScopeAsyncFlowOption.Enabled))
                     {
                         await repo.Save(product);
